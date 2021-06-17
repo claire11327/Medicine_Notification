@@ -81,11 +81,11 @@ input[type="number"] {
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
     min-height: 50vh;
-    width: 100vw;
+    width: 99.5vw;
     padding: 5vw;
     margin: 0;
-    position:sticky;
-    left: 0vw!important;
+    position: relative;
+    left: -3%!important;
 }
 
 
