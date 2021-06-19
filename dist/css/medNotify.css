@@ -95,37 +95,40 @@ input[type="button"] {
 
 .deletebtn {
     background-image: url("../img/delete_origin.png");
-    background-size: 15px 15px;
+    background-size: 5vw 5vw;
     background-repeat: no-repeat; 
     background-position: 32% 45%;
     border-bottom-left-radius:  20px !important;
     height: 10vw !important;
+    font-size: 3.5vw;
 }
 
-.deletebtn.btn:hover, .deletebtn.btn:active {    
+.deletebtn.btn:hover, .deletebtn.btn:active {
     background-image: url("../img/delete_color.png");
-    background-size: 15px 15px;
+    background-size: 5vw 5vw;
     background-repeat: no-repeat; 
     background-position: 32% 45%;
      color: #FD614B;
+     font-size: 3.5vw;
 }
 
 .editbtn {
     background-image: url("../img/edit_origin.png");
-    background-size: 15px 15px;
+    background-size: 5vw 5vw;
     background-repeat: no-repeat;
     background-position: 32% 45%;
     border-bottom-right-radius:  20px !important;
     height: 10vw !important;
-
+    font-size: 3.5vw;
 }
 
 .editbtn.btn:hover ,.editbtn.btn:active{
     background-image: url("../img/edit_color.png");
-    background-size: 15px 15px;
+    background-size: 5vw 5vw;
     background-repeat: no-repeat;
     background-position: 32% 45%;
     color: #296EA7;
+    font-size: 3.5vw;
 }
 
 

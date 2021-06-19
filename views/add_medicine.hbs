@@ -198,7 +198,7 @@
     function Add_pillDetail(userId, pillBox){
       showWarningMsg()
       if($('#med_name').val() && $('#picURL').attr('url') && $('#total').val() && $('#each').val()){
-        $(this).prop('disabled',true)
+        $('createbtn').prop('disabled',true)
         $.ajax({
           url: 'add-med',
           type: 'POST',
