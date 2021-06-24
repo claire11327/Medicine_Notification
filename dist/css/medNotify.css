@@ -19,13 +19,13 @@ body {
 
 .time a {
     position: relative;
-    left: -27vw!important;
+    left: -24vw!important;
     display: inline-flex;
 }
 @media screen and (min-width:450px ) {
     .time a {
         position: relative;
-        left: -15vw!important;
+        left: -17vw!important;
     }
 }
 
@@ -38,6 +38,7 @@ body {
     display: block !important;
     overflow-x: scroll !important;
     white-space: nowrap !important;
+    padding-left: 5vw;
 }
 
 .med_div > .col-sm-3 {
@@ -100,7 +101,7 @@ input[type="button"] {
     background-position: 32% 45%;
     border-bottom-left-radius:  20px !important;
     height: 10vw !important;
-    font-size: 3.5vw;
+    font-size: 3.5vw !important;
 }
 
 .deletebtn.btn:hover, .deletebtn.btn:active {
@@ -109,7 +110,7 @@ input[type="button"] {
     background-repeat: no-repeat; 
     background-position: 32% 45%;
      color: #FD614B;
-     font-size: 3.5vw;
+     font-size: 3.5vw !important;
 }
 
 .editbtn {
@@ -119,7 +120,7 @@ input[type="button"] {
     background-position: 32% 45%;
     border-bottom-right-radius:  20px !important;
     height: 10vw !important;
-    font-size: 3.5vw;
+    font-size: 3.5vw !important;
 }
 
 .editbtn.btn:hover ,.editbtn.btn:active{
@@ -128,7 +129,7 @@ input[type="button"] {
     background-repeat: no-repeat;
     background-position: 32% 45%;
     color: #296EA7;
-    font-size: 3.5vw;
+    font-size: 3.5vw !important;
 }
 
 

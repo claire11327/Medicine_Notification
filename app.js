@@ -316,8 +316,29 @@ function run() {
       })
 
       // 提醒三次就停止提醒
-      connection.query(`DELETE FROM user_Notify_temp WHERE userId = '${result[i]['userId']}' AND time = 3`, (err, result) => {
-        if (err) console.log('fail to DELETE:', err)
+      connection.query(`SELECT * FROM user_Notify_temp
+                        INNER JOIN Supervise ON user_Notify_temp.userId = Supervise.superviseeId
+                        INNER JOIN user_Info ON user_Notify_temp.userId = user_Info.userId
+                        WHERE user_Notify_temp.userId = '${result[i]['userId']}' AND time = 2`
+                        , (err, result) => {
+        console.log('測試 :', result)
+
+        if (result.length != 0) {
+          for (var j = 0; j < result.length; j++) {
+            console.log('要通知的人:', result[j]['userName'])
+
+            var warning = [{
+              type: 'text',
+              text: `${result[j]['userName']}沒吃藥`
+            }]
+
+            client.pushMessage(result[j]['supervisorId'], warning)
+          }
+
+          connection.query(`DELETE FROM user_Notify_temp WHERE userId = '${result[0]['userId']}'`, (err, result) => {
+            if (err) console.log('fail to DELETE:', err)
+          })
+        }
       })
 
       connection.query(`UPDATE user_Notify_temp SET notifyTime = DATE_ADD(notifyTime, INTERVAL 10 MINUTE) WHERE user_NotifyId = ${result[i]['user_NotifyId']}`, (err, result) => {
@@ -434,15 +455,13 @@ function handleEvent(event) {
           message.push(
             {
               type: 'text',
-              text: `警告！"${result[i].medName}"即將不足！\n請盡速捕貨`
+              text: `警告！"${result[i].medName}"即將不足！\n請盡速補貨`
             }
           )
         }
       }
+      client.replyMessage(event.replyToken, message)
     })
-
-    // 因為非同步問題，所以要讓 replyMessage 延後一秒再執行，才會有所有訊息
-    setTimeout(function(){client.replyMessage(event.replyToken, message);}, 1000)   // replyToken 只能用一次
   }
 
 }
