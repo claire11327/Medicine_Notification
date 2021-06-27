@@ -61,6 +61,17 @@ function leave_contactorNotify(){
   $('#popWindow div:nth-child(2)').html('您確定要刪除這筆通知嗎?')
 }
 
-function leave_liff(){
-  liff.closeWindow()
+function leave_pillDetail(my_userId){
+  warningDisappear()
+  $('#pillDetail').empty()
+  if($('#supervisee').children().length == 0) Load_pillBox(my_userId, 'myPillbox')
+  else Load_pillBox($('#supervisee').val(), 'superviseePillbox') 
+}
+
+function leave_pickMed(my_userId){
+  warningDisappear()
+  $('#pickMedPage').empty()
+  if($('#supervisee').children().length == 0) Load_medNotify(my_userId, 'myMedNotify')
+  else Load_medNotify($('#supervisee').val(), 'superviseeMedNotify') 
+
 }

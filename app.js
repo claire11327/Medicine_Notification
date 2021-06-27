@@ -61,6 +61,7 @@ app.post('/webhook', line.middleware(lineConfig), (req, res) => {
     .then((result) => res.json(result))
 })
 
+const client = new line.Client(lineConfig)
 
 //Pill Box
 app.get('/load-pillBoxPage', (req, res) => {
@@ -85,12 +86,8 @@ app.use(bodyParser.json({limit: '50mb', extended: true}))
 
 app.post('/add-med', (req, res) => {
   if(req.body.queryCond == 'insert'){
-    connection.query(`SELECT MAX(user_MedId) FROM user_Med`, (err, result) =>{
-      if(err) console.log('fail to select:', err)
-      connection.query(`ALTER table user_Med AUTO_INCREMENT=${result[0]['MAX(user_MedId)']}`,(err, result) => {
-        if(err) console.log('fail to alter table:', err)
-      })    
-      let picName = `${result[0]['MAX(user_MedId)']+1}.png`
+    connection.query(`SELECT AUTO_INCREMENT FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'test' AND TABLE_NAME = 'user_Med'`, (err, result) =>{
+      let picName = `${result[0]['AUTO_INCREMENT']}.png`
       fs.writeFile(`./dist/img/medPic/${picName}`, req.body.medPicture.split('base64,')[1], 'base64', function(err) {
         console.log(err)
       })
@@ -130,7 +127,7 @@ app.get('/delete-med', (req, res) => {
   connection.query(`DELETE FROM user_Med WHERE user_MedId=${req.query.user_MedId}`,(err, result) => {
     if(err) console.log('fail to delete:', err)
     fs.unlink(`./dist/img/medPic/${req.query.user_MedId}.png`, (err) => {
-      if(err) throw err
+      if(err) console.log(err)
     })
     connection.query(`DELETE FROM user_Notify WHERE user_NotifyId NOT IN(SELECT DISTINCT user_NotifyId FROM Notify_Med)`,(err, result) => {
       if(err) console.log('fail to delete:', err)
@@ -253,11 +250,101 @@ app.get('/check-isFriend', (req, res) => {
 })
 
 
-app.get('/create-inviteCode', (req, res) =>{
-  res.send('2516')
+app.get('/sending_error_msg', (req, res)=>{
+  client.pushMessage(req.query.userid, [{type:'text', text: `${req.query.txt}`}])
+  res.send('111')
 })
 
-const client = new line.Client(lineConfig)
+app.get('/get_contact_data', (req, res)=>{
+  console.log('get_contact_data')
+  var result1_length
+  var result2_length
+  var supervisor_result
+  var supervisee_result
+  connection.query(`SELECT * FROM Supervise, user_Info WHERE superviseeId = '${req.query.user}' AND userId = supervisorId`, (err, all_supervisor) => {
+    result1_length = all_supervisor.length
+    console.log(all_supervisor)
+    supervisor_result=all_supervisor
+  })
+  connection.query(`SELECT * FROM Supervise, user_Info WHERE supervisorId = '${req.query.user}' AND userId = superviseeId`, (err, all_supervisee) => {
+    result2_length = all_supervisee.length
+    console.log(all_supervisee)
+    supervisee_result=all_supervisee
+    res.send(
+      {'supervisor_info': {'sql_data':supervisor_result, 'length':result1_length}, 'supervisee_info': {'sql_data':supervisee_result, 'length':result2_length}}
+    )
+  })
+
+})
+
+app.get('/delete_contact', (req,res)=>{
+
+  connection.query(`DELETE FROM Supervise WHERE superviseeId = '${req.query.supervisee}' AND supervisorId = '${req.query.supervisor}'`, (err, result) => {
+    if(err) console.log('fail to delete:', err)
+  })
+
+  var result1_length
+  var result2_length
+  var supervisor_result
+
+  setTimeout(function(){
+    connection.query(`SELECT * FROM Supervise, user_Info WHERE superviseeId = '${req.query.user}' AND userId = supervisorId`, (err, all_supervisor) => {
+      result1_length = all_supervisor.length
+      console.log(all_supervisor)
+      supervisor_result=all_supervisor
+    })
+    connection.query(`SELECT * FROM Supervise, user_Info WHERE supervisorId = '${req.query.user}' AND userId = superviseeId`, (err, all_supervisee) => {
+      result2_length = all_supervisee.length
+      console.log(all_supervisee)
+      supervisee_result=all_supervisee
+    })
+  }, 350)
+  setTimeout(function(){
+    res.send(
+      {'supervisor_info': {'sql_data':supervisor_result, 'length':result1_length}, 'supervisee_info': {'sql_data':supervisee_result, 'length':result2_length}}
+    )
+  }, 750)
+})
+
+
+app.get('/agree', (req, res)=>{
+  console.log('乖孫美美被認可了')
+  console.log(`supervisor: ${req.query.supervisor_Id}`)
+  console.log(`supervisee: ${req.query.supervisee_Id}`)
+  console.log(req.query.state)
+  console.log(`time=${req.query.time}`)
+  date = Date.now()
+  connection.query(`SELECT * FROM Supervise WHERE superviseeId = '${req.query.supervisee_Id}' AND supervisorId = '${req.query.supervisor_Id}'`, (err, result) => {
+    if(result.length==0){
+        if(date-req.query.time<=3*86400*1000){
+          if(req.query.state=='agree')connection.query(`INSERT INTO Supervise(superviseeId, supervisorId) VALUES ('${req.query.supervisee_Id}','${req.query.supervisor_Id}')`, (err, result) => {
+            if(err) console.log('fail to insert:', err)
+            else{
+              connection.query(`SELECT * FROM user_Info WHERE userId = '${req.query.supervisee_Id}'`, (err, supervisee_result) => {
+                for(var j=0; j<supervisee_result.length; j=j+1){
+                  client.pushMessage(req.query.supervisor_Id, [{type:"text", text:`您成為${supervisee_result[j]['userName']}的監督人！`}])
+                }
+              })
+              connection.query(`SELECT * FROM user_Info WHERE userId = '${req.query.supervisor_Id}'`, (err, supervisor_result) => {
+                for(var j=0; j<supervisor_result.length; j=j+1){
+                  client.pushMessage(req.query.supervisee_Id, [{type:"text", text:`${supervisor_result[j]['userName']}成為您的監督人！`}])
+                }
+              })
+            }
+          })
+          res.send('no')
+        }
+        else{
+          res.send('yes_and_deleted')
+        }
+    }
+    else{
+      res.send('yes')
+    }
+  })
+})
+
+//const client = new line.Client(lineConfig)
 
 function run() {
   var now = new Date()
@@ -284,7 +371,7 @@ function run() {
 
     var carousel_msg = {
       type : "template",
-      altText : "this is an image carousel template",
+      altText : "吃藥時間到了~快來吃藥吧!",
       template : {
         type : "image_carousel",
         columns : []
@@ -293,7 +380,7 @@ function run() {
 
     var check_message = {
       type : "template",
-      altText : "This is a buttons template",
+      altText : "吃藥時間到了~快來吃藥吧!",
       template : {
           type : "buttons",
           title : "您服用藥物了嗎？",
@@ -311,12 +398,33 @@ function run() {
 
     for (var i = 0; i < result.length; i++) {
       // 次數+1
-      connection.query(`UPDATE user_Notify_temp SET time = time + 1 WHERE userId = '${result[i]['userId']}'`, (err, result) => {
+      connection.query(`UPDATE user_Notify_temp SET time = time + 1 WHERE user_NotifyId = '${result[i]['user_NotifyId']}'`, (err, result) => {
         if (err) console.log('fail to UPDATE:', err)
       })
 
       // 提醒三次就停止提醒
-      connection.query(`DELETE FROM user_Notify_temp WHERE userId = '${result[i]['userId']}' AND time = 3`, (err, result) => {
+      connection.query(`SELECT * FROM user_Notify_temp
+                        INNER JOIN Supervise ON user_Notify_temp.userId = Supervise.superviseeId
+                        INNER JOIN user_Info ON user_Notify_temp.userId = user_Info.userId
+                        WHERE user_Notify_temp.userId = '${result[i]['userId']}' AND time = 3`
+                        , (err, result) => {
+        console.log('測試 :', result)
+
+        if (result.length != 0) {
+          for (var j = 0; j < result.length; j++) {
+            console.log('要通知的人:', result[j]['userName'])
+
+            var warning = [{
+              type: 'text',
+              text: `${result[j]['userName']}沒吃藥`
+            }]
+
+            client.pushMessage(result[j]['supervisorId'], warning)
+          }
+
+        }
+      })
+      connection.query(`DELETE FROM user_Notify_temp WHERE time = 3`, (err, result) => {
         if (err) console.log('fail to DELETE:', err)
       })
 
@@ -325,7 +433,7 @@ function run() {
       })
       
       connection.query(`SELECT * FROM user_Med, Notify_Med WHERE user_Med.user_MedId = Notify_Med.user_MedId AND Notify_Med.user_NotifyId = ${result[i]['user_NotifyId']}`, (err, result) => {
-        if (err) console.log('fail to UPDATE:', err)
+        if (err) console.log('fail to SELECT:', err)
 
         carousel_msg.template.columns = []
         check_message.template.actions[0].data = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}, ${result[0]['user_NotifyId']}`
@@ -360,8 +468,11 @@ function handleEvent(event) {
   console.log(event)
   if(event.type == 'follow'){
     client.getProfile(event.source.userId).then((profile) => {
-      
-      connection.query(`INSERT INTO user_Info(userId, userName, picture) VALUES ('${profile.userId}','${profile.displayName}','${profile.pictureUrl}')`, (err, result) => {
+      let profilePic=profile.pictureUrl
+      if(!profilePic){
+        profilePic = 'img/user.png'
+      }
+      connection.query(`INSERT INTO user_Info(userId, userName, picture) VALUES ('${profile.userId}','${profile.displayName}','${profilePic}')`, (err, result) => {
         if(err) console.log('fail to insert:', err)
       })
       
@@ -372,7 +483,7 @@ function handleEvent(event) {
     
     let greeting = {
       "type": "template",
-      "altText": "this is a buttons template",
+      "altText": "歡迎加入乖孫美美",
       "template": {
         "type": "buttons",
         "thumbnailImageUrl": "https://luffy.ee.ncku.edu.tw:7128/img/drugbox_template.jpg",
@@ -399,9 +510,17 @@ function handleEvent(event) {
   }
 
   if(event.type == 'unfollow'){
-    connection.query(`DELETE FROM user_Info WHERE userId='${event.source.userId}'`, (err, result) => {
-      if(err) console.log('fail to delete:', err)
-    })
+    connection.query(`SELECT user_MedId FROM user_Med WHERE userId='${event.source.userId}'`, (err, result) => {
+      if(err) console.log('fail to select:', err)
+      result.forEach(element => {
+        fs.unlink(`./dist/img/medPic/${element.user_MedId}.png`, (err) => {
+          if(err) console.log(err)
+        })     
+      })
+      connection.query(`DELETE FROM user_Info WHERE userId='${event.source.userId}'`, (err, result) => {
+        if(err) console.log('fail to delete:', err)
+      })            
+    })    
   }
 
   if (event.type == 'postback') {
@@ -412,7 +531,7 @@ function handleEvent(event) {
 
     postback_data = event.postback.data.split(', ')
 
-    connection.query(`DELETE FROM user_Notify_temp WHERE notifyTime >= '${postback_data[0]}' AND userId = '${event.source.userId}'`, (err, result) => {
+    connection.query(`DELETE FROM user_Notify_temp WHERE notifyTime >= '${postback_data[0]}' AND user_NotifyId = '${postback_data[1]}'`, (err, result) => {
       if (err) console.log('fail to DELETE:', err)
     })
     
@@ -434,15 +553,13 @@ function handleEvent(event) {
           message.push(
             {
               type: 'text',
-              text: `警告！"${result[i].medName}"即將不足！\n請盡速捕貨`
+              text: `警告！"${result[i].medName}"即將不足！\n請盡速補貨`
             }
           )
         }
       }
+      client.replyMessage(event.replyToken, message)
     })
-
-    // 因為非同步問題，所以要讓 replyMessage 延後一秒再執行，才會有所有訊息
-    setTimeout(function(){client.replyMessage(event.replyToken, message);}, 1000)   // replyToken 只能用一次
   }
 
 }

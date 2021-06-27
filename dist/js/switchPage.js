@@ -1,3 +1,15 @@
+function hideBack(){
+    $('#back').css('display', 'none')       
+    $('#add').css('width', '70vw')
+    $('#add').css('left', '15vw')    
+}
+
+function showBack(){
+    $('#back').css('display','initial')   
+    $('#add').css('width', '44vw')
+    $('#add').css('left', '5vw')     
+}
+
 function switchToContactorPillBox(){
     Nav_contactor_animate()
     $('#myPillbox').css('display','none')
@@ -13,6 +25,7 @@ function switchToMinePillBox(){
     Nav_mine_animate()
     $('#myPillbox').css('display', 'initial')
     $('#superviseePillbox').css('display', 'none')
+    hideBack()
     $('#footer').css('display', 'initial')
     $('#superviseePillboxs_list').css('display', 'none') 
     $('#pillDetail').empty()
@@ -33,6 +46,7 @@ function switchToMineNotify(){
     Nav_mine_animate()            
     $('#myMedNotify').css('display', 'initial')
     $('#superviseeMedNotify').css('display', 'none')
+    hideBack()
     $('#footer').css('display', 'initial')
     $('#superviseeMedNotifys_list').css('display', 'none') 
     $('#pickMedPage').empty()

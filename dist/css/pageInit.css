@@ -17,12 +17,12 @@ body {
 }
 
 .blank1{
-position:fixed;
-bottom:0em;
-height:5em;
-width:100vw;
-background-color:white;
--webkit-transform:translateZ(0) ;
+    position:fixed;
+    bottom:0em;
+    height:5em;
+    width:100vw;
+    background-color:white;
+    -webkit-transform:translateZ(0) ;
 }
 
 #add{
@@ -31,9 +31,18 @@ background-color:white;
     left:15vw;
     height:12vw;
     border-radius: 5vw   !important;
-    width: 70vw;
+    width: 44vw;
     font-size:4.5vw;
--webkit-transform:translateZ(0) ;
+}
+
+#back{
+  position: fixed;
+  bottom: 1.25em;
+  right:5vw;
+  height:12vw;
+  border-radius: 5vw   !important;
+  width: 44vw;
+  font-size:4.5vw;
 }
 
 

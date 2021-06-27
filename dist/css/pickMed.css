@@ -76,17 +76,15 @@ input[type="number"] {
 }
 
 
+
 .pillChosen {
     background-color: #F0F0F0;
     border-top-left-radius: 20px;
     border-top-right-radius: 20px;
-    min-height: 50vh;
+    min-height: 60vh;
     width: 99.5vw;
     padding: 5vw;
-    margin: 0;
+    margin: 0 !important;
     position: relative;
     left: -3%!important;
 }
-
-
-

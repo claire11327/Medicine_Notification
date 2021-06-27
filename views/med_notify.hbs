@@ -23,7 +23,7 @@
   <body>
     <nav style="display: none;">
       <button><div class="mine">我的提醒<div id="mine"></div></div></button>
-      <button><div class="contacter">被提醒人的提醒<div id="contacter"></div></div></button>	
+      <button><div class="contacter">被監督人的提醒<div id="contacter"></div></div></button>	
     </nav>
     <div id="blank_underNavbar" style="display: none;"><br><br><br></div>
     <div id="supervisee"></div>
@@ -48,6 +48,7 @@
     </div>    
     <div id="footer" style="display: none;">
       <div class="blank"></div>
+      <button class="btn btn-dark mx-auto" id="back" type="button">回到總覽</button>      
       <button class="btn btn-dark mx-auto" type="button" id="add">新增提醒</button>
       <p class="btnHeight"></p>
     </div>    
@@ -76,6 +77,8 @@
         url: 'get-notify',
         data: {userId: userId},
         success: function (data){
+          if(medNotify == 'myMedNotify') hideBack()
+          else showBack()           
           $('#footer').css('display', 'initial')
           $.each(data.user_Notify, function (key, value){
             $(`#${medNotify}`).append(`<div id="med_notify_div_${value.user_NotifyId}" class="remind-box mx-auto">
@@ -83,12 +86,12 @@
                                             <a>${value.notifyTime.split(':')[0]}:${value.notifyTime.split(':')[1]}</a>
                                             <input class="form-check-input switchbtn" type="checkbox" value="${value.user_NotifyId}" ${value.switch}>
                                           </div>
-                                          <div class="row mx-auto px-4 pb-4 med_div" id="${medNotify}_${value.user_NotifyId}">
+                                          <div class="row mx-auto pb-4 med_div" id="${medNotify}_${value.user_NotifyId}">
                                           </div>
                                           <div class="row mx-auto deledit_Row">
-                                            <input class="deletebtn col btn" type="button" value="  刪除" del_user_NotifyId="${value.user_NotifyId}">
+                                            <input class="deletebtn col btn" type="button" value="        刪除" del_user_NotifyId="${value.user_NotifyId}">
                                             <div class="separate"></div>
-                                            <input class="editbtn col btn" type="button" value="  編輯" edit_user_NotifyTime="${value.notifyTime}" edit_user_NotifyId="${value.user_NotifyId}">
+                                            <input class="editbtn col btn" type="button" value="        編輯" edit_user_NotifyTime="${value.notifyTime}" edit_user_NotifyId="${value.user_NotifyId}">
                                           </div>
                                         </div>`)
 
@@ -233,12 +236,15 @@
           $('body').on('click', '#add', function(){ 
             if($('#supervisee').children().length == 0) Load_pickMed(profile.userId)
             else Load_pickMed($('#supervisee').val())                           
-          })                
+          })         
 
+          $('body').on('click', '#back', function(){
+            switchToContactorNotify()
+          })
 
           $('body').on('click', '#nextbtn', function(){
-            if($('.checkbtn:checked').length == 0){
-              $('#warning_sentence').css('color','red');
+            if($('.checkbtn:checked').length == 0 || $('.checkbtn:checked').length > 10){
+              $('#warning_sentence').css('color','red')
             }
             else{
               $('#warning_sentence').css('color','#FFFFFF');
@@ -281,7 +287,7 @@
                            
           $('body').on('click', '#confirmBtn', function(){
             if($('#cancelbtn').prop('disabled')){
-              leave_liff()
+              leave_pickMed(profile.userId)
             }else{
               if($('#submitbtn').length && $('#supervisee').children().length == 0){
                 leave_mineNotify()

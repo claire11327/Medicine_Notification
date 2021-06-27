@@ -25,7 +25,7 @@
   <body>
     <nav style="display: none;">
       <button disabled><div class="mine">我的藥盒<div id="mine"></div></div></button>
-      <button><div class="contacter">被提醒人的藥盒<div id="contacter"></div></div></button>	
+      <button><div class="contacter">被監督人的藥盒<div id="contacter"></div></div></button>	
     </nav>
     <div id="blank_underNavbar" style="display: none;"></br></br></br></div>
     <div id="supervisee"></div>
@@ -47,6 +47,7 @@
     <div id="footer" style="display: none;">
       <div class="blank"></div>
       <div class="blank1"></div>
+      <button class="btn btn-dark mx-auto" id="back" type="button">回到總覽</button>      
       <button class="btn btn-dark mx-auto" id="add" type="button">新增藥物</button>
     </div>     
   </body>
@@ -79,6 +80,8 @@
         url: 'load-pillBoxPage',
         data: {userId: userId},
         success: function (data){
+          if(pillBox == 'myPillbox')  hideBack()
+          else showBack()
           $('#footer').css('display', 'initial')
           $('.blank').css('display', 'block')
           $.each(data.user_Med, function (key, value){
@@ -195,7 +198,7 @@
     function Add_pillDetail(userId, pillBox){
       showWarningMsg()
       if($('#med_name').val() && $('#picURL').attr('url') && $('#total').val() && $('#each').val()){
-        $(this).prop('disabled',true)
+        $('#createbtn').prop('disabled',true)
         $.ajax({
           url: 'add-med',
           type: 'POST',
@@ -245,6 +248,10 @@
             Load_pillDetail()  
           })
 
+          $('body').on('click', '#back', function(){
+            switchToContactorPillBox()
+          })
+
           $('body').on('click', '#createbtn', function(){
             if($('#supervisee').children().length == 0) Add_pillDetail(profile.userId, 'myPillbox')
             else Add_pillDetail($('#supervisee').val(), 'superviseePillbox')
@@ -288,7 +295,7 @@
 
           $('body').on('click', '#confirmBtn', function(){
             if($('#cancelbtn').prop('disabled')){
-              leave_liff()
+              leave_pillDetail(profile.userId)
             }else{
               if($('#createbtn').length && $('#supervisee').children().length == 0){
                 leave_minePillBox()

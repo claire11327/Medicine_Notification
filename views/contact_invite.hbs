@@ -1,67 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-    <link href="css/medDetail.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">    
-    <title>聯絡人</title>
-
-  </head>
-  <body>
-    <h1 id="userId">contact page</h1>
-    <h2 id="friendship"></h2>
-    <input id="invite_code" type="number" placeholder="請輸入邀請碼" value=""><br>
-    <button id="btn_addFriend" style="display: none;">加入好友</button>
-  </body>
-  <script>
-    liff.init({
-      liffId:'1655949102-Bp9qg6ke'
-    })
-    .then(() => {
-      liff.getProfile()
-      .then(profile =>{
-        $(document).ready(function(){
-          $.ajax({
-            url: '/check-isFriend',
-            data: {
-              userId: profile.userId               
-            },
-            success: function (data){
-              //$('#userId').html(profile.userId)
-              if(data){
-                $('#friendship').html('Is friend')
-              }else{
-                $('#friendship').html('Not friend')
-                $('#btn_addFriend').css('display','initial')
-                
-              }
-            }
-          })
-          
-          $('body').on('click', '#btn_addFriend', function(){
-            if (liff.isApiAvailable('multipleLiffTransition')) {
-                liff.openWindow({
-                    url: "https://line.me/R/ti/p/@388kqszp", // URL for another LIFF app
-                    external: false
-                });
-            }                    
-            
-            //window.location.href = 'https://line.me/R/ti/p/@388kqszp'
-          })   
- 
-               
-        })      
-        
-      })
-      .catch((err) => {
-        console.log('error:', err)
-      })
-    })
-    .catch(error => {
-      //error callback   
-    })         
-  </script>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">    
+        <title>乖孫美美</title>
+    </head>
+    <style>
+        body{
+            font-family:arial;  
+        }
+        #add{
+            margin-top: 5vw;
+            display:inline-flex;
+            /*width: 100vw;*/
+            align-items:center;
+            flex-wrap: nowrap;
+            justify-content:center;
+        }
+        #add img{
+            width: 20vw;
+            height: 20vw;;
+        }
+        #add div:nth-child(1){
+            margin-left: 5vw;
+        }
+        #add div:nth-child(2){
+            margin-left: 5vw;
+            font-size:4.5vw;
+            font-weight:400;
+        }
+    </style>
+    <body>
+    </body>
+    <script>
+        liff.init({
+            liffId:'1655949102-Bp9qg6ke'
+        })
+        .then(() => {
+            $('body').append(`
+                <div id='add' onclick="window.location.href='https://liff.line.me/1645278921-kWRPP32q?accountId=388kqszp'">
+                    <div><img id="nothing1" src="img/logo.png"></div>
+                    <div>邀請您一起加入乖孫美美</div>
+                </div>
+            `)
+        })
+        .catch((err) => {
+            console.log('啟動失敗。');
+        });
+    </script>
+</html>
