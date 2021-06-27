@@ -6,98 +6,616 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
-    <link href="css/medDetail.css" rel="stylesheet">
+    <script src="js/navAnimate.js" type="text/javascript"></script>
+    <script src="js/warningBox.js" type="text/javascript"></script>
+    <link href="css/navBar.css" rel="stylesheet">
+    <link href="css/contactInit.css" rel="stylesheet">
+    <link href="css/contactor.css" rel="stylesheet"> 
+    <link href="css/warningBox.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">    
     <title>聯絡人</title>
-
   </head>
   <body>
-    <button id="btnShare_beSupervisor" style="display: none;">監護人</button>
-    <button id="btnShare_beSupervisee" style="display: none;">被監護人</button>
-    <h1 id="liff-uri"></h1>
+    <nav id="navbar" style="display: none;">
+      <button disabled><div class="mine">監督人<div id="mine"></div></div></button>
+      <button><div class="contacter">被監督人<div id="contacter"></div></div></button>
+    </nav>
+    <div id="blank_underNavbar" style="display: none;"></br></br></br></div>
+    <div id='button_div'>
+      <div id='list_of_supervisor'></div>
+      <div id='list_of_supervisee' style="display:none"></div>
+    </div>
+
+    <div id="warningBox">
+      <div id="hide"></div>
+      <div id="popWindow">
+        <div><img src="img/warning.png"></div>
+        <div>您確定要刪除此筆資料嗎?</div>
+        <div>
+          <button onclick="cancel()">取消</button>
+          <button id="confirmBtn" value="" onclick="say_yes()">確認</button>
+        </div>	  
+      </div>      
+    </div>
+
+    <div id="footer1"></div>
+    <div id="footer2" style="display:none"></div>
+    
   </body>
   <script>
+    var delete_state
+    var delete_id
+    var user = ''
+    var nothing1 = `<div class="add_contact">
+                      <div><img id="nothing1" src="img/contact.png"></div>
+                      <div>新增監督人</div>
+                      <div>讓您的監督人幫您設定藥物提醒並且知道您服用藥物的狀況</div>
+                    </div>`
+    var nothing2 = `<div class="add_contact">
+                      <div><img id="nothing2" src="img/contact.png"></div>
+                      <div>新增被監督人</div>
+                      <div>您可以為被監督人設定藥物提醒並且知道他服用藥物的狀況</div>
+                    </div>`
+    var beSupervisor_footer = `<div class="blank"></div>
+                              <div class="blank1"></div>
+                              <button id="btnShare_beSupervisor" class="btn btn-dark mx-auto create" type="button">新增監督人</button>`
+    var beSupervisee_footer = `<div class="blank"></div>
+                              <div class="blank1"></div>
+                              <button id="btnShare_beSupervisee" class="btn btn-dark mx-auto create" type="button">新增被監督人</button>`
+    function say_yes(){
+      if(delete_state=='delete_supervisor'){
+        $('#list_of_supervisor').css('display', 'inline')//刪
+        $('#list_of_supervisee').css('display', 'none')//刪
+      }
+      else{
+        $('#list_of_supervisor').css('display', 'none')//刪
+        $('#list_of_supervisee').css('display', 'inline')//刪
+      }
+      
+      if(delete_state=='delete_supervisor'){
+        $.ajax({
+          url:'/delete_contact',
+          data:{
+            supervisor:delete_id,
+            supervisee:user,
+            user:user
+          },
+          success:function(result){
+            //------------------------------------------------------
+            $('body').css('overflow','scroll')
+            $('#hide').css('display','none')
+            $('#popWindow').css('opacity','0')
+            $('#popWindow').css('display','none')
+            //------------------------------------------------------
+            if(result['supervisor_info']['length']==0){
+              $('#list_of_supervisor').empty()
+              $('#list_of_supervisor').append(nothing1)
+              $('#footer1').empty()
+              $('#footer1').append(beSupervisor_footer)
+            }
+            else{
+              $('#list_of_supervisor').empty()
+              $('#blank_underNavbar').css('display', 'initial')
+              $.each(result.supervisor_info.sql_data, function (key, value){
+                $('#list_of_supervisor').append(`<div class="contacter_med">
+                                                     <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                     <div class="appellation">${value.userName}</div>
+                                                     <div class="del" onclick="check_to_delete_supervisor('${value.userId}')">
+                                                       <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                         <div id="del">
+                                                           <div><img src="img/delete_origin.png"></div>
+                                                         <div>刪除</div>
+                                                         </div>
+                                                       </button>
+                                                     </div>
+                                                   </div>`)
+              })
+              $('#footer1').empty()
+              $('#footer1').append(beSupervisor_footer)
+            }
+            if(result['supervisee_info']['length']==0){
+              $('#list_of_supervisee').empty()
+              $('#list_of_supervisee').append(nothing2)
+              $('#footer2').empty()
+              $('#footer2').append(beSupervisee_footer)
+            }
+            else{
+              $('#list_of_supervisee').empty()
+              $('#blank_underNavbar').css('display', 'initial')
+              $.each(result.supervisee_info.sql_data, function (key, value){
+                $('#list_of_supervisee').append(`<div class="contacter_med">
+                                                     <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                     <div class="appellation">${value.userName}</div>
+                                                     <div class="del" onclick="check_to_delete_supervisee('${value.userId}')">
+                                                       <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                         <div id="del">
+                                                           <div><img src="img/delete_origin.png"></div>
+                                                         <div>刪除</div>
+                                                         </div>
+                                                       </button>
+                                                     </div>
+                                                   </div>`)
+              })
+              $('#footer2').empty()
+              $('#footer2').append(beSupervisee_footer)
+            }
+          }
+        })
+      }
+      else{
+        $.ajax({
+          url:'/delete_contact',
+          data:{
+            supervisor:user,
+            supervisee:delete_id,
+            user:user
+          },
+          success:function(result){//0605, 11:48
+            //------------------------------------------------------
+            $('body').css('overflow','scroll')
+            $('#hide').css('display','none')
+            $('#popWindow').css('opacity','0')
+            $('#popWindow').css('display','none')
+            //------------------------------------------------------
+            if(result['supervisor_info']['length']==0){
+              $('#list_of_supervisor').empty()
+              $('#list_of_supervisor').append(nothing1)
+              $('#footer1').empty()
+              $('#footer1').append(beSupervisor_footer)
+            }
+            else{
+              $('#list_of_supervisor').empty()
+              $('#blank_underNavbar').css('display', 'initial')
+              $.each(result.supervisor_info.sql_data, function (key, value){
+                $('#list_of_supervisor').append(`<div class="contacter_med">
+                                                     <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                     <div class="appellation">${value.userName}</div>
+                                                     <div class="del" onclick="check_to_delete_supervisor('${value.userId}')">
+                                                       <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                         <div id="del">
+                                                           <div><img src="img/delete_origin.png"></div>
+                                                         <div>刪除</div>
+                                                         </div>
+                                                       </button>
+                                                     </div>
+                                                   </div>`)
+              })
+              $('#footer1').empty()
+              $('#footer1').append(beSupervisor_footer)
+            }
+            if(result['supervisee_info']['length']==0){
+              $('#list_of_supervisee').empty()
+              $('#list_of_supervisee').append(nothing2)
+              $('#footer2').empty()
+              $('#footer2').append(beSupervisee_footer)
+            }
+            else{
+              $('#list_of_supervisee').empty()
+              $('#blank_underNavbar').css('display', 'initial')
+              $.each(result.supervisee_info.sql_data, function (key, value){
+                $('#list_of_supervisee').append(`<div class="contacter_med">
+                                                     <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                     <div class="appellation">${value.userName}</div>
+                                                     <div class="del" onclick="check_to_delete_supervisee('${value.userId}')">
+                                                       <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                         <div id="del">
+                                                           <div><img src="img/delete_origin.png"></div>
+                                                         <div>刪除</div>
+                                                         </div>
+                                                       </button>
+                                                     </div>
+                                                   </div>`)
+              })
+              $('#footer2').empty()
+              $('#footer2').append(beSupervisee_footer)
+            }
+          }
+        })
+      }
+      
+    }
+    function check_to_delete_supervisor(data){
+      delete_state = 'delete_supervisor'
+      delete_id = data
+      warning()
+    }
+    function check_to_delete_supervisee(data){
+      delete_state = 'delete_supervisee'
+      delete_id = data
+      warning()
+    }
+    function show_page_of_supervisor(){
+      $('#list_of_supervisor').css('display', 'initial')//change display
+      $('#list_of_supervisee').css('display', 'none')
+      $('#footer1').css('display', 'initial')
+      $('#footer2').css('display', 'none')
+    }
+    function show_page_of_supervisee(){
+      $('#list_of_supervisee').css('display', 'initial')//change display
+      $('#list_of_supervisor').css('display', 'none')
+      $('#footer2').css('display', 'initial')
+      $('#footer1').css('display', 'none')
+    }
     liff.init({
-      liffId:'1655949102-b0jGAZ6r'
+      liffId:'1655949102-b0jGAZ6r'//contact
     })
     .then(() => {
       liff.getProfile()
       .then(profile =>{
+        user = profile.userId
         $(document).ready(function(){
           $('#liff-uri').html(liff.permanentLink.createUrl())
-          $('body').on('click', '#btnShare_beSupervisor', function(){
-            $.ajax({
-              url: '/create-inviteCode',
-              data: {
-                supervise_role: 'supervisee',
-                userId: profile.userId               
-              },
-              success: function (data){
-                liff.permanentLink.setExtraQueryParam(`user_tracking_id=${profile.userId}`)
-                if (liff.isApiAvailable('shareTargetPicker')) {
-                  liff.shareTargetPicker([
-                    {
-                      "type": "template",
-                      "altText": "this is a buttons template",
-                      "template": {
-                        "type": "buttons",
-                        "thumbnailImageUrl": "https://luffy.ee.ncku.edu.tw:7128/img/contact_template.png",
-                        "title": "乖孫美美",
-                        "text": `邀請你成為我的吃藥監護人\n邀請碼:${data}`,
-                        "actions": [
-                          {
-                            "type": "uri",
-                            "label": "輸入邀請碼",
-                            "uri": liff.permanentLink.createUrl()
-                            //"uri": "https://liff.line.me/1655949102-Bp9qg6ke"
+          var url = liff.permanentLink.createUrl()
+          var friendship
+          var param = url.split('?')
+          $.ajax({
+            url:'/check-isFriend',
+            data:{
+              userId: profile.userId
+            },
+            success:function(data){
+              if(!data){
+                liff.openWindow({
+                  url: 'https://liff.line.me/1655949102-Bp9qg6ke'
+                })
+              }
+              else if(url.indexOf('supervisor_id')!=-1||url.indexOf('supervisee_id')!=-1){
+                if(url.indexOf('supervisor_id')!=-1){
+                  let id = url.split('&supervisor_id=')
+                  let time = id[0].split('time=')
+                  //let time = Date.now
+                  $.ajax({
+                    url:'/agree',
+                    data:{
+                      supervisor_Id: id[1],
+                      supervisee_Id: profile.userId,
+                      state: 'check',
+                      time: time[1],
+                    },
+                    success:function(is_in_database){
+                      if(id[1]==profile.userId){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到自己傳ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
                           }
-                        ]
+                        })
+                      }
+                      else if(is_in_database=='yes_and_deleted'){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到無效ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
+                          }
+                        })
+                      }
+                      else if(is_in_database=='yes'){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到已經邀請過ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
+                          }
+                        })
+                      }
+                      else{
+                        liff.closeWindow()
+                        $('nav').empty()
+                        if(url.indexOf('supervisor_id')!=-1){
+                          let id = url.split('&supervisor_id=')
+                          let time = id[0].split('time=')
+                          $.ajax({
+                            url:'/agree',
+                            data:{
+                              supervisor_Id: id[1],
+                              supervisee_Id: profile.userId,
+                              state: 'agree',
+                              time: time[1]
+                            },
+                          })
+                        }
+                        else if(url.indexOf('supervisee_id')!=-1){
+                          let id = url.split('&supervisee_id=')
+                          let time = id[0].split('time=')
+                          $.ajax({
+                            url:'/agree',
+                            data:{
+                              supervisor_Id: profile.userId,
+                              supervisee_Id: id[1],
+                              state: 'agree',
+                              time: time[1]
+                            },
+                            success:function(){
+                              liff.closeWindow()
+                            }
+                          })
+                        }
                       }
                     }
-                  ])
-                                
-                  .then(
-                    console.log('share target picker')
-                  ).catch(function(res) {
-                    alert("Failed to launch ShareTargetPicker")
-                  })
-                
+                  }) 
                 }
+                else if(url.indexOf('supervisee_id')!=-1){
+                  let id = url.split('&supervisee_id=')
+                  let time = id[0].split('time=')
+                  $.ajax({
+                    url:'/agree',
+                    data:{
+                      supervisor_Id: profile.userId,
+                      supervisee_Id: id[1],
+                      state: 'check',
+                      time: time[1]
+                    },
+                    success:function(is_in_database){
+                      if(id[1]==profile.userId){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到自己傳ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
+                          }
+                        })
+                      }
+                      else if(is_in_database=='yes_and_deleted'){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到無效ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
+                          }
+                        })
+                      }
+                      else if(is_in_database=='yes'){
+                        $.ajax({
+                          url: '/sending_error_msg',
+                          data:{
+                            txt: '按到已經邀請過ㄉ邀請ㄌ！',
+                            userid: profile.userId
+                          },
+                          success:function(){
+                            liff.closeWindow()
+                          }
+                        })
+                      }
+                      else{
+                        liff.closeWindow()
+                        //----------------------------------------------------------
+                        $('nav').empty()
+                        if(url.indexOf('supervisor_id')!=-1){
+                          let id = url.split('&supervisor_id=')
+                          let time = id[0].split('time=')
+                          $.ajax({
+                            url:'/agree',
+                            data:{
+                              supervisor_Id: id[1],
+                              supervisee_Id: profile.userId,
+                              state: 'agree',
+                              time: time[1]
+                            },
+                            success:function(){
+                              liff.closeWindow()
+                            }
+                          })
+                        }
+                        else if(url.indexOf('supervisee_id')!=-1){
+                          let id = url.split('&supervisee_id=')
+                          let time = id[0].split('time=')
+                          $.ajax({
+                            url:'/agree',
+                            data:{
+                              supervisor_Id: profile.userId,
+                              supervisee_Id: id[1],
+                              state: 'agree',
+                              time: time[1]
+                            },
+                            success:function(){
+                              liff.closeWindow()
+                            }
+                          })
+                        }
+                      }
+                    }
+                  })
+                }
+              } 
+              else{ 
+                $.ajax({
+                  url:'/get_contact_data',
+                  data:{
+                    user:profile.userId
+                  },
+                  success:function(data){
+                    $('nav').css('display', 'flex')
+                    if(data['supervisor_info']['length']==0){
+                      $('#list_of_supervisor').empty()
+                      $('#list_of_supervisor').append(nothing1)
+                      $('#footer1').empty()
+                      $('#footer1').append(beSupervisor_footer)
+                    }
+                    else{
+                      $('#list_of_supervisor').empty()
+                      $('#blank_underNavbar').css('display', 'initial')
+                      
+                      $.each(data.supervisor_info.sql_data, function (key, value){
+                        $('#list_of_supervisor').append(`<div class="contacter_med">
+                                                          <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                          <div class="appellation">${value.userName}</div>
+                                                          <div class="del" onclick="check_to_delete_supervisor('${value.userId}')">
+                                                            <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                              <div id="del">
+                                                                <div><img src="img/delete_origin.png"></div>
+                                                              <div>刪除</div>
+                                                              </div>
+                                                            </button>
+                                                          </div>
+                                                        </div>`)
+                      })
+                      $('#footer1').empty()
+                      $('#footer1').append(beSupervisor_footer)
+                    }
+                    if(data['supervisee_info']['length']==0){
+                      $('#list_of_supervisee').empty()
+                      $('#list_of_supervisee').append(nothing2)
+                      $('#footer2').empty()
+                      $('#footer2').append(beSupervisee_footer)
+                    }
+                    else{
+                      $('#list_of_supervisee').empty()
+                      $('#blank_underNavbar').css('display', 'initial')
+                      
+                      $.each(data.supervisee_info.sql_data, function (key, value){
+                        $('#list_of_supervisee').append(`<div class="contacter_med">
+                                                          <div class="profile" style="background-image:url(${value.picture})"></div>
+                                                          <div class="appellation">${value.userName}</div>
+                                                          <div class="del" onclick="check_to_delete_supervisee('${value.userId}')">
+                                                            <button class="btn mx-auto supervisee_view" value="${value.userId}" superviseeName="${value.userName}" superviseePicture="${value.picture}">
+                                                              <div id="del">
+                                                                <div><img src="img/delete_origin.png"></div>
+                                                              <div>刪除</div>
+                                                              </div>
+                                                            </button>
+                                                          </div>
+                                                        </div>`)
+                      })
+                      $('#footer2').empty()
+                      $('#footer2').append(beSupervisee_footer)
+                    }
+                  }
+                })
+                $('#list_of_supervisor').html(
+                  `<button id="btnShare_beSupervisor" >新增我的提醒人</button>`
+                )
+                $('#list_of_supervisee').html(
+                  `<button id="btnShare_beSupervisee" >新增我的被提醒人</button>`
+                )
               }
-            })            
+
+            }
           })          
+
+          $('body').on('click', '#agree', function(result){
+            $('nav').empty()
+            if(url.indexOf('supervisor_id')!=-1){
+              $('body').empty()
+              let id = url.split('&supervisor_id=')
+              let time = id[0].split('time=')
+              $('body').append(`<h1>${id[1]}</h1>`)
+              $.ajax({
+                url:'/agree',
+                data:{
+                  supervisor_Id: id[1],
+                  supervisee_Id: profile.userId,
+                  state: 'agree',
+                  time: time[1]
+                },
+              })
+            }
+            else if(url.indexOf('supervisee_id')!=-1){
+              $('body').empty()
+              let id = url.split('&supervisee_id=')
+              let time = id[0].split('time=')
+              $('body').append(`<h1>${id[1]}</h1>`)
+              $.ajax({
+                url:'/agree',
+                data:{
+                  supervisor_Id: profile.userId,
+                  supervisee_Id: id[1],
+                  state: 'agree',
+                  time: time[1]
+                },
+              })
+            }
+          })
+
+          $('body').on('click', 'nav button:nth-child(1)', function(){            
+            Nav_mine_animate()
+            show_page_of_supervisor()
+          })
         
-          $('body').on('click', '#btnShare_beSupervisee', function(){
+          $('body').on('click', 'nav button:nth-child(2)', function(){
+            Nav_contactor_animate()
+            show_page_of_supervisee()
+          })
+          
+          $('body').on('click', '#btnShare_beSupervisor', function(){
+            var time = Date.now()
+            liff.permanentLink.setExtraQueryParam(`time=${time}&supervisee_id=${profile.userId}`)
             if (liff.isApiAvailable('shareTargetPicker')) {
               liff.shareTargetPicker([
                 {
                   "type": "template",
-                  "altText": "this is a buttons template",
+                  "altText": "乖孫美美邀請你成為我的藥物提醒監督人",
                   "template": {
                     "type": "buttons",
-                    "thumbnailImageUrl": "https://luffy.ee.ncku.edu.tw:7128/img/contact_template.png",
-                    "title": "乖孫美美",
-                    "text": "邀請你成為我的吃藥被監護人",
+                    "thumbnailImageUrl": "https://luffy.ee.ncku.edu.tw:7128/img/invite.png",
+                    "title": "邀請你成為我的藥物提醒監督人",
+                    "text": `現在立即點及確認，你可以為我設定藥物提醒。`,
                     "actions": [
                       {
                         "type": "uri",
-                        "label": "輸入邀請碼",
-                        "uri": "https://liff.line.me/1655949102-Bp9qg6ke"
+                        "label": "確認成為監督人",
+                        "uri": liff.permanentLink.createUrl()
                       }
                     ]
                   }
                 }
-              ])              
+              ])            
               .then(
-                alert("ShareTargetPicker was launched")
+                console.log('share target picker')
               ).catch(function(res) {
                 alert("Failed to launch ShareTargetPicker")
               })
-             
-            }
+            }        
           })          
-        })      
         
+          $('body').on('click', '#btnShare_beSupervisee', function(){
+            var time = Date.now()
+            liff.permanentLink.setExtraQueryParam(`time=${time}&supervisor_id=${profile.userId}`)
+            if (liff.isApiAvailable('shareTargetPicker')) {
+              liff.shareTargetPicker([
+                {
+                  "type": "template",
+                  "altText": "乖孫美美邀請你成為我的藥物提醒被監督人",
+                  "template": {
+                    "type": "buttons",
+                    "thumbnailImageUrl": "https://luffy.ee.ncku.edu.tw:7128/img/invite.png",
+                    "title": "邀請你成為我的藥物提醒被監督人",
+                    "text": `現在立即點及確認，我可以為你設定藥物提醒`,
+                    "actions": [
+                      {
+                        "type": "uri",
+                        "label": "確認成為被監督人",
+                        "uri": liff.permanentLink.createUrl()
+                      }
+                    ]
+                  }
+                }
+              ])
+              .then(
+                console.log('share target picker')
+              ).catch(function(res) {
+                alert("Failed to launch ShareTargetPicker")
+              })
+            }            
+          })
+
+        })
       })
       .catch((err) => {
         console.log('error:', err)
@@ -106,4 +624,5 @@
     .catch(error => {
       //error callback   
     })         
-  </script> 
+  </script>
+  </html>

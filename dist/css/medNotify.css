@@ -102,6 +102,8 @@ input[type="button"] {
     border-bottom-left-radius:  20px !important;
     height: 10vw !important;
     font-size: 3.5vw !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .deletebtn.btn:hover, .deletebtn.btn:active {
@@ -109,8 +111,10 @@ input[type="button"] {
     background-size: 5vw 5vw;
     background-repeat: no-repeat; 
     background-position: 32% 45%;
-     color: #FD614B;
-     font-size: 3.5vw !important;
+    color: #FD614B;
+    font-size: 3.5vw !important;
+    outline: none !important;
+    box-shadow: none !important;    
 }
 
 .editbtn {
@@ -121,6 +125,8 @@ input[type="button"] {
     border-bottom-right-radius:  20px !important;
     height: 10vw !important;
     font-size: 3.5vw !important;
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .editbtn.btn:hover ,.editbtn.btn:active{
@@ -130,6 +136,8 @@ input[type="button"] {
     background-position: 32% 45%;
     color: #296EA7;
     font-size: 3.5vw !important;
+    outline: none !important;
+    box-shadow: none !important;    
 }
 
 

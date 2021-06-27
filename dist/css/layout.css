@@ -24,10 +24,6 @@ button .btn{
 }
 
 
-.btn , .btn:active, .btn:focus {
-    outline: none !important;
-    box-shadow: none !important;
-}
 
 .blank {
     position: fixed;

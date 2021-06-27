@@ -23,7 +23,7 @@
   <body>
     <nav style="display: none;">
       <button><div class="mine">我的提醒<div id="mine"></div></div></button>
-      <button><div class="contacter">被提醒人的提醒<div id="contacter"></div></div></button>	
+      <button><div class="contacter">被監督人的提醒<div id="contacter"></div></div></button>	
     </nav>
     <div id="blank_underNavbar" style="display: none;"><br><br><br></div>
     <div id="supervisee"></div>
@@ -243,8 +243,8 @@
           })
 
           $('body').on('click', '#nextbtn', function(){
-            if($('.checkbtn:checked').length == 0){
-              $('#warning_sentence').css('color','red');
+            if($('.checkbtn:checked').length == 0 || $('.checkbtn:checked').length > 10){
+              $('#warning_sentence').css('color','red')
             }
             else{
               $('#warning_sentence').css('color','#FFFFFF');
